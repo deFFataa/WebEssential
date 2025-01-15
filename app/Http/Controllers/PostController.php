@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Category;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Create', ['category' => Category::all()]);
     }
 
     /**
@@ -31,17 +32,26 @@ class PostController extends Controller
     public function store(Request $request)
     {
 
-        // dd($request);
-
         $fields = $request->validate([
             'title' => 'required',
             'content' => 'required',
-            'avatar' => 'required',
+            'avatar' => 'sometimes',
+            'link' => 'required',
+            'category' => 'required'
         ]);
+
+        $fields['category_id'] = 15;
+
+        if ($request->hasFile('avatar')) {
+            $fields['avatar'] = $request->file('avatar')->store('assets/Uploads', 'public');
+            $fields['has_avatar'] = true;
+        } else {
+            $fields['has_avatar'] = false;
+        }
 
         Post::create($fields);
 
-        return redirect('/');
+        return redirect('/create-post')->with('message', 'Post created successfully.');
     }
 
     /**

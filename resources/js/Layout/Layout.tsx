@@ -1,12 +1,25 @@
 import { Navbar, Dropdown, Button, Indicator, Badge } from 'react-daisyui'
 import { Link } from '@inertiajs/react'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FaFacebook, FaInstagram } from 'react-icons/fa'
 
 export default function Layout({ children }) {
+
+    const [isScroll, setIsScroll] = React.useState(false)
+
+    useEffect(() => {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 0) {
+                setIsScroll(true)
+            } else {
+                setIsScroll(false)
+            }
+        })
+    }, [])
+
     return (
         <main className="px-[120px]">
-            <Navbar className=" shadow-lg bg-white/5 mt-5 outline-1 outline outline-white/[25%] rounded-lg">
+            <Navbar className={`${isScroll ? 'bg-base-100' : 'bg-white/5'} shadow-lg  mt-5 outline-1 outline outline-white/[25%] rounded-lg sticky top-5 z-[9999]`}>
                 <Navbar.Start>
                     <Dropdown>
                         <Button tag="label" color="ghost" shape="circle" tabIndex={0}>
@@ -39,6 +52,7 @@ export default function Layout({ children }) {
                     </Button>
                 </Navbar.End>
             </Navbar>
+
 
             {children}
         </main>
