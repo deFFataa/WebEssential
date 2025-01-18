@@ -22,7 +22,9 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('CreateCategory', [
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
@@ -50,7 +52,19 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        $getAllCategory = Category::all();
+
+        if ($getAllCategory->isEmpty()) {
+            return inertia('CategoryShow', [
+                'categories' => Category::all(),
+                'posts' => ['posts' => 'No data yet'],
+            ]);
+        }
+
+        return inertia('CategoryShow', [
+            'categories' => Category::all(),
+            'posts' => $category->posts
+        ]);
     }
 
     /**
@@ -58,15 +72,28 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        //
+        return inertia('EditCategory', [
+            'category' => $category,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(Request $request, Category $category)
     {
-        //
+        $field = $request->validate(
+            [
+                'name' => 'required'
+            ]
+        );
+        try {
+            $category->update($field);
+        } catch (\Throwable $th) {
+            return redirect('/create-category')->with('error', 'There was an error creating the category.');
+        }
+
+        return redirect('/create-category')->with('message', 'Category updated successfully.');
     }
 
     /**
@@ -74,6 +101,7 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        $category->delete();
+        return redirect('/create-category')->with('message', 'Category deleted successfully.');
     }
 }

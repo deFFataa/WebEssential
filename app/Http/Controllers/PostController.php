@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -23,8 +25,13 @@ class PostController extends Controller
      */
     public function create()
     {
-        return inertia('Create', ['category' => Category::all()]);
+        return inertia('Create', [
+            'categories' => Category::all(),
+            'posts' => Post::with('category')->latest()->get(),
+        ]);
     }
+    
+    
 
     /**
      * Store a newly created resource in storage.
@@ -37,10 +44,11 @@ class PostController extends Controller
             'content' => 'required',
             'avatar' => 'sometimes',
             'link' => 'required',
-            'category' => 'required'
+            'categories' => [['required'], Rule::exists('categories', 'id')], 
         ]);
 
-        $fields['category_id'] = 15;
+        $fields['category_id'] = $fields['categories'];
+        unset($fields['categories']);
 
         if ($request->hasFile('avatar')) {
             $fields['avatar'] = $request->file('avatar')->store('assets/Uploads', 'public');
@@ -51,7 +59,10 @@ class PostController extends Controller
 
         Post::create($fields);
 
-        return redirect('/create-post')->with('message', 'Post created successfully.');
+        return redirect('/create-post')
+            ->with('categories', Category::all())
+            ->with('posts', Post::with('category')->get())
+            ->with('message', 'Post created successfully.');
     }
 
     /**
@@ -59,7 +70,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+
     }
 
     /**
@@ -67,22 +78,51 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return inertia('PostEdit', [
+            'post' => $post->with('category')->firstWhere('id', $post->id),
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, Post $post)
+    public function update(Request $request, Post $post)
     {
-        //
+        $fields = $request->validate([
+            'title' => 'required',
+            'content' => 'required',
+            'avatar' => 'sometimes', // Accept null or file if provided
+            'link' => 'required',
+            'categories' => ['required', Rule::exists('categories', 'id')],
+        ]);        
+    
+        // Update category_id
+        $fields['category_id'] = $fields['categories'];
+        unset($fields['categories']);
+    
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            $fields['avatar'] = $request->file('avatar')->store('assets/Uploads', 'public');
+            $fields['has_avatar'] = true;
+        } else {
+            $fields['has_avatar'] = false;
+        }
+    
+        // Use the instance to update
+        $post->update($fields);
+    
+        // Return redirect with updated data
+        return redirect('/create-post')
+            ->with('message', 'Post updated successfully.');
     }
-
+    
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        return redirect('/create-post')->with('message', 'Post deleted successfully.');
     }
 }

@@ -13,7 +13,7 @@ class Post extends Model
     protected $guarded = [];
 
     public function category() {
-        $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class);
     }
 
 }

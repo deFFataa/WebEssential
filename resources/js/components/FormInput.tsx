@@ -2,10 +2,15 @@ import React from 'react'
 import { Input } from 'react-daisyui'
 import { FaSearch } from 'react-icons/fa'
 
-const FormInput = () => {
+interface Props {
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+
+}
+
+const FormInput = ({ onChange }: Props) => {
     return (
         <label className="input input-bordered flex items-center gap-2">
-            <input type="text" className="grow" placeholder="Search" />
+            <input type="text" onChange={onChange} className="grow" placeholder="Search" />
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"

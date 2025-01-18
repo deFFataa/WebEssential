@@ -1,9 +1,14 @@
 import { useForm, usePage } from '@inertiajs/react'
 import React, { useEffect, useState } from 'react'
-import { Input, Button, Loading } from 'react-daisyui'
+import { Input, Button, Loading, Table, Link } from 'react-daisyui'
 import toast, { Toaster } from 'react-hot-toast'
+import { MdEdit } from "react-icons/md"
 
-const CreateCategory = () => {
+type Props = {
+    categories: { id: number, name: string }[]
+}
+
+const CreateCategory = ({ categories} : Props) => {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
     })
@@ -12,7 +17,14 @@ const CreateCategory = () => {
 
     const submit = (e) => {
         e.preventDefault()
-        post('/store/category')
+        post('/store/category', {
+            onSuccess: () => {
+                setToastDisplayed(false)
+            },
+            onError: () => {
+                setToastDisplayed(false)
+            }
+        })
     }
 
     const { flash } = usePage<{ flash: { message?: string } }>().props
@@ -20,7 +32,7 @@ const CreateCategory = () => {
 
     useEffect(() => {
         if (flash.message && !toastDisplayed) {
-            if(messageType !== 'error'){
+            if (messageType !== 'error') {
                 toast.success(flash.message)
             } else {
                 toast.error(flash.message)
@@ -28,7 +40,8 @@ const CreateCategory = () => {
             setToastDisplayed(true)
             reset()
         }
-    }, [flash.message, reset, toastDisplayed])
+    }, [flash.message, messageType, toastDisplayed])
+
 
     return (
         <div>
@@ -58,6 +71,30 @@ const CreateCategory = () => {
                     </Button>
                 )}
             </form>
+            <div className="overflow-x-auto mt-5">
+                <h1 className='font-bold text-lg my-3'>All Category</h1>
+                <Table className='bg-white/10 backdrop-blur-lg'>
+                    <Table.Head>
+                        <span>No.</span>
+                        <span>Name</span>
+                        <span>Action</span>
+                    </Table.Head>
+
+                    <Table.Body>
+                        {categories.map((category, index) => (
+                            <Table.Row key={category.id} className='hover:bg-base-100/15 ease-in duration-50'>
+                                <span>{index + 1}</span>
+                                <span>{category.name}</span>
+                                <span className='text-center'>
+                                    <Link href={`/category/${category.id}/edit`}>
+                                        <MdEdit size={30} className="hover:bg-white/20 hover:underline p-1 rounded-full" />
+                                    </Link>
+                                </span>
+                            </Table.Row>
+                        ))}
+                    </Table.Body>
+                </Table>
+            </div>
         </div>
     );
 }

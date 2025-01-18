@@ -1,39 +1,52 @@
 import React, { useEffect, useState } from 'react'
-import { Input, Textarea, FileInput, Button, Select, Loading, Table } from 'react-daisyui'
-import { useForm, usePage, Link } from '@inertiajs/react'
+import { Input, Textarea, FileInput, Button, Select, Loading, Table, Divider } from 'react-daisyui'
+import { useForm, usePage, Link, router } from '@inertiajs/react'
 import toast, { Toaster } from 'react-hot-toast'
 import { MdEdit } from "react-icons/md"
 
 interface Props {
-    categories: [],
-    posts: []
+    categories: [{
+        id: number,
+        name: string
+    }],
+    post: {
+        id: number,
+        title: string,
+        content: string,
+        avatar: string,
+        link: string,
+        category_id: number,
+        category: {
+            name: string
+        }
+    }
 }
 
-const Create = ({ categories, posts }: Props) => {
+const PostEdit = ({ categories, post }: Props) => {
 
-    console.log(posts)
+    console.log(post)
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        content: '',
-        avatar: null as File | null,
-        link: '',
-        categories: '',
+    const { data, setData, put, processing, errors, reset } = useForm({
+        title: post.title,
+        content: post.content,
+        avatar: post.avatar || null,
+        link: post.link,
+        categories: post.category_id,
     })
 
     const [toastDisplayed, setToastDisplayed] = useState(false)
 
     const submit = (e) => {
         e.preventDefault()
-        post('/store/post', {
-            onSuccess: () => {
-                setToastDisplayed(false)
-            },
-            onError: () => {
-                setToastDisplayed(false)
-            }
-        })
-
+        router.post(`/posts/${post.id}/update`, {
+            _method: 'put',
+            forceFormData: true,
+            avatar: data.avatar,
+            title: data.title,
+            content: data.content,
+            link: data.link,
+            categories: data.categories
+        });
     }
 
 
@@ -52,7 +65,7 @@ const Create = ({ categories, posts }: Props) => {
         }
     }, [flash.message, messageType, toastDisplayed])
 
-    const [file, setFile] = useState<string | undefined>()
+    const [file, setFile] = useState<string | undefined>(post.avatar)
 
     const handleFile = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -64,9 +77,9 @@ const Create = ({ categories, posts }: Props) => {
     return (
         <div>
             <Toaster />
-            <h1 className="text-center text-2xl font-bold py-5">Add Post</h1>
+            <h1 className="text-center text-2xl font-bold py-5">Edit Post</h1>
             <form className='' onSubmit={submit}>
-                <div className="grid grid-cols-2 grid-rows-1 max-sm:grid-cols-1">
+                <div className="grid grid-cols-2 grid-rows-1">
                     <div className="flex space-y-2 flex-col">
                         <div className="form-control w-full max-w-md">
                             <label className="label">
@@ -75,13 +88,11 @@ const Create = ({ categories, posts }: Props) => {
                             <Select
                                 className={errors.categories && 'border-red-500'}
                                 value={data.categories}
-                                onChange={(e) => setData('categories', e.target.value)}
+                                onChange={(e) => setData('categories', Number(e.target.value))}
                             >
-                                <option value="">Select a category</option>
-                                {categories.map((cat: any) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </option>
+                                <option value={post.category_id} selected defaultValue={post.category_id} hidden>{post.category.name}</option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>{category.name}</option>
                                 ))}
                             </Select>
                             {errors.categories && <div className="text-red-500">{errors.categories}</div>}
@@ -112,13 +123,16 @@ const Create = ({ categories, posts }: Props) => {
                     </div>
                     <div className="flex space-y-2 flex-col">
                         <div className='form-control w-full max-w-md'>
-                            {file && <img className='w-1/2' src={file} alt="" />}
+                            {file == post.avatar ? <img className='w-1/2' src={'/storage/' + file} alt="" /> :
+                                <img className='w-1/2' src={file} alt="" />
+                            }
                             <label className="label">
                                 <span className="label-text">Avatar</span>
                             </label>
                             <FileInput
                                 onChange={handleFile}
                             />
+
                             {errors.avatar && <div className="text-red-500">{errors.avatar}</div>}
                         </div>
                         <div className="form-control w-full max-w-md">
@@ -132,53 +146,31 @@ const Create = ({ categories, posts }: Props) => {
                             />
                             {errors.link && <div className="text-red-500">{errors.link}</div>}
                         </div>
-                        <div className='self-end max-w-md w-full'>
-                            {processing ? (
-                                <div className="mt-5">
-                                    Adding... <Loading size="xs" variant="spinner" />
-                                </div>
-                            ) : (
-                                <div className='flex gap-4'>
-                                    <Button tag='a' className="px-10 mt-5" href="/">Cancel</Button>
-                                    <Button className="px-10 mt-5" color="primary" type="submit">
-                                        Add
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
+                    </div>
+                </div>
+                <Divider />
+                <div className="flex">
+                    <div className='me-auto'>
+                        <Link className="px-4 py-3 text-red-500 mt-5 grid items-center hover:bg-white/20 hover:font-semibold rounded-md ease-in duration-100" method='delete' href={`/posts/${post.id}/delete`}>Delete</Link>
+                    </div>
+                    <div className=''>
+                        {processing ? (
+                            <div className="mt-5">
+                                Updating... <Loading size="xs" variant="spinner" />
+                            </div>
+                        ) : (
+                            <div className='flex gap-4'>
+                                <Link className="px-10 mt-5 grid items-center hover:bg-white/20 rounded-md ease-in duration-100" href="/create-post">Cancel</Link>
+                                <Button className="px-10 mt-5" color="primary" type="submit">
+                                    Update
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </form >
-
-            <div className="overflow-x-auto mt-5">
-                <h1 className='font-bold text-lg my-3'>All Post</h1>
-                <Table className='bg-white/10 backdrop-blur-lg'>
-                    <Table.Head>
-                        <span>No.</span>
-                        <span>Name</span>
-                        <span>Job</span>
-                        <span>Action</span>
-                    </Table.Head>
-
-                    <Table.Body>
-                        {posts.map((post: { id: number, title: string, category: { name: string } | null }, index) => (
-                            <Table.Row key={post.id} className='hover:bg-base-100/15 ease-in duration-50'>
-                                <span>{index + 1}</span>
-                                <span>{post.title}</span>
-                                <span>{post.category && post.category.name}</span>
-                                <span className='text-center'>
-                                    <Link href={`/posts/${post.id}`}>
-                                        <MdEdit size={30} className="hover:bg-white/20 hover:underline p-1 rounded-full" />
-                                    </Link>
-                                </span>
-                            </Table.Row>
-                        ))}
-                    </Table.Body>
-                </Table>
-
-            </div>
         </div >
     )
 }
 
-export default Create
+export default PostEdit
