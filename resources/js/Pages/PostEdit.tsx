@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Input, Textarea, FileInput, Button, Select, Loading, Table, Divider } from 'react-daisyui'
+import { Input, Textarea, FileInput, Button, Select, Loading, Table, Divider, Modal } from 'react-daisyui'
 import { useForm, usePage, Link, router } from '@inertiajs/react'
 import toast, { Toaster } from 'react-hot-toast'
 import { MdEdit } from "react-icons/md"
@@ -48,6 +48,10 @@ const PostEdit = ({ categories, post }: Props) => {
             categories: data.categories
         });
     }
+    const [visible, setVisible] = useState<boolean>(false);
+    const toggleVisible = () => {
+        setVisible(!visible);
+    };
 
 
     const { flash } = usePage<{ flash: { message?: string } }>().props
@@ -79,7 +83,7 @@ const PostEdit = ({ categories, post }: Props) => {
             <Toaster />
             <h1 className="text-center text-2xl font-bold py-5">Edit Post</h1>
             <form className='' onSubmit={submit}>
-                <div className="grid grid-cols-2 grid-rows-1">
+                <div className="grid grid-cols-2 grid-rows-1 max-sm:grid-cols-1">
                     <div className="flex space-y-2 flex-col">
                         <div className="form-control w-full max-w-md">
                             <label className="label">
@@ -149,10 +153,7 @@ const PostEdit = ({ categories, post }: Props) => {
                     </div>
                 </div>
                 <Divider />
-                <div className="flex">
-                    <div className='me-auto'>
-                        <Link className="px-4 py-3 text-red-500 mt-5 grid items-center hover:bg-white/20 hover:font-semibold rounded-md ease-in duration-100" method='delete' href={`/posts/${post.id}/delete`}>Delete</Link>
-                    </div>
+                <div className="flex justify-end">
                     <div className=''>
                         {processing ? (
                             <div className="mt-5">
@@ -169,6 +170,22 @@ const PostEdit = ({ categories, post }: Props) => {
                     </div>
                 </div>
             </form >
+            <div className=''>
+                <Button color='ghost' onClick={toggleVisible} className='px-4 py-3 text-red-500 grid items-center hover:bg-white/20 hover:font-semibold rounded-md ease-in duration-100'>Delete</Button>
+                <Modal.Legacy open={visible}>
+                    <Modal.Header className="font-bold text-center">Delete Confirmation</Modal.Header>
+                    <Modal.Body>
+                        <div className='text-center'>
+                            Data that are referenced to this category will also be deleted.
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Actions>
+                        <Button color='ghost' onClick={toggleVisible}>Close</Button>
+                        <Link className="px-4 py-3 bg-red-500 text-white grid items-center hover:bg-red-600 rounded-md ease-in duration-100" method='delete' href={`/posts/${post.id}/delete`}>Yes, I'm Sure.</Link>
+                    </Modal.Actions>
+                </Modal.Legacy>
+            </div>
         </div >
     )
 }

@@ -55,8 +55,8 @@ export default function Layout({ children }) {
             )
         }
         return (
-            <li>
-                <Category key={category.id} href={`/category/${category.id}`}>
+            <li key={category.id}>
+                <Category href={`/category/${category.id}`}>
                     {category.name}
                 </Category>
             </li>
@@ -64,8 +64,8 @@ export default function Layout({ children }) {
     })
 
     return (
-        <main className="px-[114px] max-sm:px-[20px]">
-            <Navbar className={`${isScroll ? 'backdrop-blur-lg' : 'bg-white/5'} shadow-lg  mt-5 outline-1 outline outline-white/[25%] rounded-lg sticky top-5 z-[9999] max-w-[1307px] max-md:justify-between`}>
+        <main className="px-[114px] max-sm:px-[20px] relative">
+            <Navbar className={`${isScroll ? 'backdrop-blur-lg bg-base-100/50' : 'bg-white/5'} shadow-lg  mt-5 outline-1 outline outline-white/[25%] rounded-lg sticky top-5 z-[9999] max-md:justify-between`}>
                 <Navbar.Start className='max-sm:w-12'>
                     <Dropdown>
                         <Button tag="label" color="ghost" shape="circle" tabIndex={0}>
@@ -82,7 +82,7 @@ export default function Layout({ children }) {
                                     <a href="https://isaac-balabbo-portfolio.netlify.app/" target="_blank">Portfolio</a>
                                 </li>
                             </div>
-                            <div className="max-sm:block space-y-2">
+                            <div className="max-sm:block space-y-2 hidden">
                                 <li>
                                     <Link href="/">Homepage</Link>
                                 </li>
@@ -108,7 +108,6 @@ export default function Layout({ children }) {
                                     {!isSearchActive && <Category href="/">All</Category>}
                                 </li>
                                 {category_list}
-
                             </div>
                         </Dropdown.Menu>
                     </Dropdown>

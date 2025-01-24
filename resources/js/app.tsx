@@ -8,6 +8,7 @@ import Layout from './Layout/Layout';
 import '../css/app.css'
 
 createInertiaApp({
+  title: title => `${title} - Web Essentials`,
   resolve: name => {
     const pages = import.meta.glob('./Pages/**/*.tsx', { eager: true })
     let page: any = pages[`./Pages/${name}.tsx`]
@@ -18,6 +19,6 @@ createInertiaApp({
     createRoot(el).render(<App {...props} />)
   },
   progress: {
-    
+    color: '#4B5563'
   }
 })

@@ -63,7 +63,7 @@ class CategoryController extends Controller
 
         return inertia('CategoryShow', [
             'categories' => Category::all(),
-            'posts' => $category->posts
+            'posts' => $category->posts()->paginate(9),
         ]);
     }
 

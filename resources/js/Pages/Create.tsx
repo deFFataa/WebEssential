@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Input, Textarea, FileInput, Button, Select, Loading, Table } from 'react-daisyui'
+import { Input, Textarea, FileInput, Button, Select, Loading, Table, Modal } from 'react-daisyui'
 import { useForm, usePage, Link } from '@inertiajs/react'
 import toast, { Toaster } from 'react-hot-toast'
-import { MdEdit } from "react-icons/md"
+import { FaPen, FaTrash } from "react-icons/fa"
 
 interface Props {
     categories: [],
@@ -11,9 +11,7 @@ interface Props {
 
 const Create = ({ categories, posts }: Props) => {
 
-    console.log(posts)
-
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, delete: destroy, processing, errors, reset } = useForm({
         title: '',
         content: '',
         avatar: null as File | null,
@@ -28,6 +26,7 @@ const Create = ({ categories, posts }: Props) => {
         post('/store/post', {
             onSuccess: () => {
                 setToastDisplayed(false)
+                reset('avatar', 'title', 'content', 'link')
             },
             onError: () => {
                 setToastDisplayed(false)
@@ -35,6 +34,18 @@ const Create = ({ categories, posts }: Props) => {
         })
 
     }
+
+    const deleteCategory = (id: number, e?: React.FormEvent) => {
+        e?.preventDefault();
+        destroy(`/posts/${id}/delete`, {
+            onSuccess: () => {
+                setToastDisplayed(false);
+            },
+            onError: () => {
+                setToastDisplayed(false);
+            },
+        });
+    };
 
 
     const { flash } = usePage<{ flash: { message?: string } }>().props
@@ -61,14 +72,19 @@ const Create = ({ categories, posts }: Props) => {
         }
     }
 
+    const [visibleModalId, setVisibleModalId] = useState<number | null>(null);
+    const toggleVisible = (id: number | null) => {
+        setVisibleModalId(id);
+    };
+
     return (
         <div>
             <Toaster />
             <h1 className="text-center text-2xl font-bold py-5">Add Post</h1>
             <form className='' onSubmit={submit}>
-                <div className="grid grid-cols-2 grid-rows-1 max-sm:grid-cols-1">
+                <div className="grid grid-cols-2 grid-rows-1 max-lg:grid-cols-1 gap-5">
                     <div className="flex space-y-2 flex-col">
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control w-full max-w-md max-lg:max-w-full">
                             <label className="label">
                                 <span className="label-text">Category</span>
                             </label>
@@ -86,7 +102,7 @@ const Create = ({ categories, posts }: Props) => {
                             </Select>
                             {errors.categories && <div className="text-red-500">{errors.categories}</div>}
                         </div>
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control w-full max-w-md max-lg:max-w-full">
                             <label className="label">
                                 <span className="label-text">Title</span>
                             </label>
@@ -97,7 +113,7 @@ const Create = ({ categories, posts }: Props) => {
                             />
                             {errors.title && <div className="text-red-500">{errors.title}</div>}
                         </div>
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control w-full max-w-md max-lg:max-w-full">
                             <label className="label">
                                 <span className="label-text">Details</span>
                             </label>
@@ -111,8 +127,8 @@ const Create = ({ categories, posts }: Props) => {
                         </div>
                     </div>
                     <div className="flex space-y-2 flex-col">
-                        <div className='form-control w-full max-w-md'>
-                            {file && <img className='w-1/2' src={file} alt="" />}
+                        <div className='form-control w-full max-w-md max-lg:max-w-full'>
+                            {file && <img className='max-w-[300px] mx-auto w-1/2' src={file} alt="" />}
                             <label className="label">
                                 <span className="label-text">Avatar</span>
                             </label>
@@ -121,7 +137,7 @@ const Create = ({ categories, posts }: Props) => {
                             />
                             {errors.avatar && <div className="text-red-500">{errors.avatar}</div>}
                         </div>
-                        <div className="form-control w-full max-w-md">
+                        <div className="form-control w-full max-w-md max-lg:max-w-full">
                             <label className="label">
                                 <span className="label-text">Link</span>
                             </label>
@@ -132,7 +148,7 @@ const Create = ({ categories, posts }: Props) => {
                             />
                             {errors.link && <div className="text-red-500">{errors.link}</div>}
                         </div>
-                        <div className='self-end max-w-md w-full'>
+                        <div className='self-end max-w-md max-lg:max-w-full w-full'>
                             {processing ? (
                                 <div className="mt-5">
                                     Adding... <Loading size="xs" variant="spinner" />
@@ -157,7 +173,7 @@ const Create = ({ categories, posts }: Props) => {
                         <span>No.</span>
                         <span>Name</span>
                         <span>Job</span>
-                        <span>Action</span>
+                        <div className='text-center'>Action</div>
                     </Table.Head>
 
                     <Table.Body>
@@ -166,17 +182,62 @@ const Create = ({ categories, posts }: Props) => {
                                 <span>{index + 1}</span>
                                 <span>{post.title}</span>
                                 <span>{post.category && post.category.name}</span>
-                                <span className='text-center'>
-                                    <Link href={`/posts/${post.id}`}>
-                                        <MdEdit size={30} className="hover:bg-white/20 hover:underline p-1 rounded-full" />
+                                <div className="text-center flex gap-1 justify-center">
+                                    <Link
+                                        href={`/posts/${post.id}`}
+                                        className="hover:bg-white/20 hover:underline p-4 rounded-full"
+                                    >
+                                        <FaPen size={15} />
                                     </Link>
-                                </span>
+                                    <Button
+                                        color="ghost"
+                                        onClick={() => toggleVisible(post.id)} // Pass the category ID
+                                        className="hover:bg-white/20 hover:underline p-4 h-full rounded-full"
+                                    >
+                                        <FaTrash size={15} />
+                                    </Button>
+                                </div>
                             </Table.Row>
                         ))}
                     </Table.Body>
                 </Table>
-
             </div>
+            {posts.map((post: { id: number, title: string, category: { name: string } | null }) => (
+                <Modal.Legacy
+                    key={post.id}
+                    open={visibleModalId === post.id}
+                >
+                    <Modal.Header className="font-bold text-center">
+                        Delete Confirmation '{post.title}'
+                    </Modal.Header>
+                    <Modal.Body>
+                        <div className="text-center">
+                            This action cannot be undone. Are you sure you want to delete this post?
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Actions>
+                        {processing ? (
+                            <div className="mt-5">
+                                Deleting... <Loading size="xs" variant="spinner" />
+                            </div>
+                        ) : (
+                            <>
+                                <Button color="ghost" onClick={() => toggleVisible(null)}>
+                                    Close
+                                </Button>
+                                <Button
+                                    className="px-4 py-3 bg-red-500 text-white grid items-center hover:bg-red-600 rounded-md ease-in duration-100"
+                                    onClick={() => deleteCategory(post.id)}
+                                >
+                                    Yes, I'm Sure.
+                                </Button>
+                            </>
+                        )}
+
+                    </Modal.Actions>
+                </Modal.Legacy>
+            ))}
         </div >
     )
 }

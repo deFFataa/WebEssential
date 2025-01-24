@@ -8,7 +8,7 @@
     @vite('resources/js/app.tsx')
     @inertiaHead
 </head>
-<body class="max-sm:min-h-dvh">
+<body class="max-sm:min-h-dvh max-w-[1600px] mx-auto">
     @inertia
 </body>
 </html>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Post;
 use Inertia\Middleware;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -40,7 +41,8 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message')
             ],
-            'categories' => Category::all()
+            'categories' => Category::all(),
+            'posts' => Post::get(),
         ]);
     }
 }

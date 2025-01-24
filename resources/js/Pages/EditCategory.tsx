@@ -1,8 +1,7 @@
 import { useForm, usePage, Link } from '@inertiajs/react'
 import React, { useEffect, useState } from 'react'
-import { Input, Button, Loading, Table } from 'react-daisyui'
+import { Input, Button, Loading, Table, Modal } from 'react-daisyui'
 import toast, { Toaster } from 'react-hot-toast'
-import { MdEdit } from "react-icons/md"
 
 type Props = {
     category: { id: number, name: string }
@@ -41,6 +40,10 @@ const EditCategory = ({ category }: Props) => {
         }
     }, [flash.message, messageType, toastDisplayed])
 
+    const [visible, setVisible] = useState<boolean>(false);
+    const toggleVisible = () => {
+        setVisible(!visible);
+    };
 
     return (
         <div>
@@ -65,20 +68,32 @@ const EditCategory = ({ category }: Props) => {
                         Updating... <Loading size="xs" variant="spinner" />
                     </div>
                 ) : (
-                    <div className='flex gap-4'>
-                        <div className='flex gap-4'>
+                    <div className='flex gap-4 justify-end max-w-md'>
+                        <div className='flex gap-4 '>
                             <Link className="px-10 mt-5 grid items-center hover:bg-white/20 rounded-md ease-in duration-100" href="/create-category">Cancel</Link>
                             <Button className="px-10 mt-5" color="primary" type="submit">
                                 Update
                             </Button>
                         </div>
-                        <div className='ms-auto'>
-                            <Link className="px-4 py-3 text-red-500 mt-5 grid items-center hover:bg-white/20 hover:font-semibold rounded-md ease-in duration-100" method='delete' href={`/category/${category.id}/delete`}>Delete</Link>
-                        </div>
-
                     </div>
                 )}
             </form>
+            <div className='absolute top-[262px] text-end'>
+                <Button color='ghost' onClick={toggleVisible} className='px-4 py-3 text-red-500 grid items-center hover:bg-white/20 hover:font-semibold rounded-md ease-in duration-100'>Delete</Button>
+                <Modal.Legacy open={visible}>
+                    <Modal.Header className="font-bold text-center">Delete Confirmation</Modal.Header>
+                    <Modal.Body>
+                        <div className='text-center'>
+                            Data that are referenced to this category will also be deleted.
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Actions>
+                        <Button color='ghost' onClick={toggleVisible}>Close</Button>
+                        <Link className="px-4 py-3 bg-red-500 text-white grid items-center hover:bg-red-600 rounded-md ease-in duration-100" method='delete' href={`/category/${category.id}/delete`}>Yes, I'm Sure.</Link>
+                    </Modal.Actions>
+                </Modal.Legacy>
+            </div>
         </div>
     );
 }

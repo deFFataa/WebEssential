@@ -8,7 +8,7 @@ use App\Models\Post;
 
 // sleep(1);
 Route::get('/', function () {
-    return inertia('Home', ['categories' => Category::all(), 'posts' => Post::all()]);
+    return inertia('Home', ['categories' => Category::all(), 'posts' => Post::latest()->paginate(9)]);
 });
 Route::inertia('/about', 'About');
 Route::get('/create-post', [PostController::class, 'create']);
